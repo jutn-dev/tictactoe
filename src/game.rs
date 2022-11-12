@@ -73,7 +73,7 @@ pub fn game_loop(mut game: game) {
             //println!("AI time: {}", time.elapsed().as_secs_f64());
         } else {
             let time = std::time::Instant::now();
-            AI(&mut board, 'O', &lenght, depth);
+            game.AI();
             //game.AI_multi_thread();
             //0.23
             println!("AI time: {}", time.elapsed().as_secs_f64());
@@ -81,7 +81,7 @@ pub fn game_loop(mut game: game) {
         }
         game.print_board();
         // println!("board: {:?}", board);
-        let winner = game.check_winner();
+        let winner = game.clone().check_winner();
         if winner != 'N' {
             println!("{}, won!", winner);
             break;

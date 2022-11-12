@@ -13,8 +13,10 @@ impl game {
             for x in 0..self.board[y].len() {
                 if self.board[y][x] == ' ' {
                     self.board[y][x] = self.ai;
-                    let eval = self.minmax(self.depth, -99999.9, 99999.9, false);
+                    self.peaces_placed += 1;
+                    let eval = self.clone().minmax(self.depth, -99999.9, 99999.9, false);
                     self.board[y][x] = ' ';
+                    self.peaces_placed -= 1;
                     if eval > max_eval {
                         max_eval = eval;
                         next_move = (y as usize, x as usize);
@@ -56,9 +58,11 @@ impl game {
                         let mut val: (usize, usize, f32) = (y, x, 0.0);
                         val.0 = y;
                         val.1 = x;
+                        game_.peaces_placed += 1;
                         game_.board[y][x] = game_.ai;
-                        val.2 = game_.minmax(game_.depth, -99999.9, 99999.9, false);
+                        val.2 = game_.clone().minmax(game_.depth, -99999.9, 99999.9, false);
                         game_.board[y][x] = ' ';
+                        game_.peaces_placed += 1;
                         tx_.send(val).unwrap();
                         threads_.fetch_sub(1, Ordering::SeqCst);
                         // println!("done");
@@ -101,7 +105,7 @@ impl game {
     }
 
     fn minmax(&mut self, depth: i32, mut alpha: f32, mut beta: f32, is_maximizing: bool) -> f32 {
-        let winner = self.check_winner();
+        let winner = self.clone().check_winner();
         if winner != 'N' {
             if winner == self.ai {
                 return 10.0;
@@ -123,8 +127,10 @@ impl game {
                 for x in 0..self.board[y].len() {
                     if self.board[y][x] == ' ' {
                         self.board[y][x] = self.ai;
+                        self.peaces_placed += 1;
                         let eval = self.minmax(depth - 1, alpha.clone(), beta.clone(), false);
                         self.board[y][x] = ' ';
+                        self.peaces_placed -= 1;
                         if eval > max_eval {
                             max_eval = eval;
                         }
@@ -143,9 +149,11 @@ impl game {
             'y2: for y in 0..self.board.len() {
                 for x in 0..self.board[y].len() {
                     if self.board[y][x] == ' ' {
-                        self.board[y][x] = self.player;
+                        self.board[y][x] = self.players[0].player;
+                        self.peaces_placed += 1;
                         let eval = self.minmax(depth - 1, alpha.clone(), beta.clone(), true);
                         self.board[y][x] = ' ';
+                        self.peaces_placed -= 1;
                         if eval < max_eval {
                             max_eval = eval;
                         }

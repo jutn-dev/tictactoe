@@ -1,6 +1,12 @@
 pub mod ai;
 
 #[derive(Clone)]
+pub struct Player {
+    is_ai: bool,
+    player: char,
+}
+
+#[derive(Clone)]
 pub struct game {
     pub board: Vec<Vec<char>>,
     pub size: (u8, u8),
@@ -8,7 +14,8 @@ pub struct game {
     pub turn: char,
     pub depth: i32,
     pub ai: char,
-    pub player: char,
+    pub players: Vec<Player>,
+    pub peaces_placed: i32,
 }
 
 impl game {
@@ -20,33 +27,48 @@ impl game {
             turn: ('X'),
             depth: (0),
             ai: ('O'),
-            player: ('X'),
+            players: (vec![
+                Player {
+                    is_ai: false,
+                    player: 'X',
+                },
+                Player {
+                    is_ai: false,
+                    player: 'X',
+                },
+            ]),
+            peaces_placed: (0),
         }
     }
 
-    pub fn check_winner(&self) -> char {
-        let mut turn: char = 'X';
+    pub fn check_winner(mut self) -> char {
+        if self.peaces_placed
+            < self.lenght as i32 * self.players.len() as i32 - self.players.len() as i32 - 1
+        {
+            return 'N';
+        }
+
         for _ in 0..2 {
             for y in 0..self.board.len() {
                 let mut in_row_y: u8 = 0;
                 let mut in_row_x: u8 = 0;
                 for x in 0..self.board[y].len() {
-                    if self.board[y][x] == turn {
+                    if self.board[y][x] == self.turn {
                         in_row_x += 1;
                     } else {
                         in_row_x = 0;
                     }
                     if in_row_x == self.lenght {
-                        return turn;
+                        return self.turn;
                     }
 
-                    if self.board[x][y] == turn {
+                    if self.board[x][y] == self.turn {
                         in_row_y += 1;
                     } else {
                         in_row_y = 0;
                     }
                     if in_row_y == self.lenght {
-                        return turn;
+                        return self.turn;
                     }
                 }
             }
@@ -59,23 +81,23 @@ impl game {
                 let mut in_row2 = 0;
                 for x in 0..self.board.len() - i.abs() as usize {
                     // / check
-                    if self.board[y + x][x] == turn {
+                    if self.board[y + x][x] == self.turn {
                         in_row += 1;
                     } else {
                         in_row = 0;
                     }
                     if in_row == self.lenght {
-                        return turn;
+                        return self.turn;
                     }
 
                     // \ check
-                    if self.board[y2 - x][x] == turn {
+                    if self.board[y2 - x][x] == self.turn {
                         in_row2 += 1;
                     } else {
                         in_row2 = 0;
                     }
                     if in_row2 == self.lenght {
-                        return turn;
+                        return self.turn;
                     }
                 }
 
@@ -87,7 +109,7 @@ impl game {
                 }
             }
 
-            turn = self.next_turn();
+            self.turn = self.next_turn();
         }
 
         if self.is_board_full() == true {
@@ -111,6 +133,7 @@ impl game {
     pub fn place_piece(&mut self, pos: (u8, u8)) -> &str {
         if self.board[pos.1 as usize][pos.0 as usize] == ' ' {
             self.board[pos.1 as usize][pos.0 as usize] = self.turn;
+            self.peaces_placed += 1;
             return "ok";
         }
         return "piece is already there";
